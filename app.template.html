@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentforce Sales 問題集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: single centered study column; header with exam countdown, domain meters, then the quiz card */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --fg: #1b2330; --muted: #5d6878; --line: #dde2ea;
+  --accent: #0b5cad; --accent-weak: #e6f0fb;
+  --ok: #1f7a4d; --ok-weak: #e3f4ea; --ng: #b3261e; --ng-weak: #fbe9e7; --warn: #9a6400;
+  --sans: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #12161d; --surface: #1a2029; --fg: #e5e9f0; --muted: #98a3b3; --line: #2c3441;
+  --accent: #6aa8ec; --accent-weak: #1b2b40;
+  --ok: #5cc48d; --ok-weak: #15301f; --ng: #f08a80; --ng-weak: #3a1b19; --warn: #e3b25a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --fg: #e5e9f0; --muted: #98a3b3; --line: #2c3441;
+  --accent: #6aa8ec; --accent-weak: #1b2b40;
+  --ok: #5cc48d; --ok-weak: #15301f; --ng: #f08a80; --ng-weak: #3a1b19; --warn: #e3b25a; color-scheme: dark }
+* { box-sizing: border-box }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.7 var(--sans); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 20px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 18px; }
+h1 { font-size: 20px; margin: 0; text-wrap: balance; }
+h2 { font-size: 15px; margin: 0; color: var(--muted); font-weight: 500; letter-spacing: .04em; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.count { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.count b { color: var(--accent); font-size: 18px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.domains { display: grid; gap: 10px; }
+.drow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; }
+.drow .name { font-size: 14px; }
+.drow .num { font-family: var(--mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.bar { grid-column: 1 / -1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.bar .c { background: var(--ok) } .bar .w { background: var(--ng); opacity: .75 }
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.mode { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.mode:hover { border-color: var(--accent); }
+.mode strong { font-size: 15px; }
+.mode span { font-size: 12px; color: var(--muted); }
+.mode.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+.mode.primary span { color: var(--surface); opacity: .85 }
+.mode:disabled { opacity: .45; cursor: default; }
+select { font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; max-width: 100%; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 8px 14px; }
+.btn.go { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 500; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn:focus-visible, .mode:focus-visible, .choice:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--muted); }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; }
+.chip.multi { border-color: var(--warn); color: var(--warn); }
+.q { font-size: 16px; white-space: pre-wrap; }
+.choices { display: flex; flex-direction: column; gap: 8px; }
+.choice { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; align-items: start; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+.choice input { margin-top: 5px; }
+.choice.sel { border-color: var(--accent); background: var(--accent-weak); }
+.choice.right { border-color: var(--ok); background: var(--ok-weak); }
+.choice.wrong { border-color: var(--ng); background: var(--ng-weak); }
+.note { grid-column: 2; font-size: 13px; color: var(--muted); }
+.verdict { font-weight: 700; font-size: 16px; }
+.verdict.ok { color: var(--ok) } .verdict.ng { color: var(--ng) }
+.expl { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.ref { font-size: 12px; color: var(--muted); }
+.progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--accent); }
+.timer { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.timer.low { color: var(--ng); }
+.result-big { font-size: 40px; font-weight: 700; font-family: var(--mono); }
+.list { display: flex; flex-direction: column; gap: 6px; }
+.li { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px; font-size: 13px; padding: 8px 0; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; }
+.mark { font-family: var(--mono); font-weight: 700; }
+.mark.ok { color: var(--ok) } .mark.ng { color: var(--ng) }
+.star { background: none; border: 1px solid var(--line); border-radius: 6px; padding: 2px 10px; font-size: 13px; }
+.star.on { color: var(--warn); border-color: var(--warn); }
+.small { font-size: 12px; color: var(--muted); }
+.danger { color: var(--ng); background: none; border: 0; padding: 0; font-size: 12px; text-decoration: underline; }
+@media (prefers-reduced-motion: no-preference) { .choice, .mode { transition: border-color .12s, background .12s; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+const QUESTIONS = /*__DATA__*/[];
+const DOMAINS = [
+  { name: "セールスライフサイクル", w: 20 },
+  { name: "コンサルティングおよび実装戦略", w: 25 },
+  { name: "Agentforce Sales の実践的な応用", w: 24 },
+  { name: "データ管理", w: 18 },
+  { name: "予測AI・生成AI", w: 13 },
+];
+const EXAM_DATE = new Date(2026, 10, 30);
+const KEY = "afsales-quiz-v1";
+let S = load();
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || { q: {}, star: {} }; } catch (e) { return { q: {}, star: {} }; } }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+const st = id => S.q[id] || { c: 0, w: 0, last: null };
+const $ = (h) => { const t = document.createElement("template"); t.innerHTML = h.trim(); return t.content.firstChild; };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const app = document.getElementById("app");
+
+function domainStats(d) {
+  const qs = QUESTIONS.filter(q => q.domain === d);
+  let c = 0, w = 0, seen = 0;
+  qs.forEach(q => { const s = st(q.id); if (s.last !== null) { seen++; s.last ? c++ : w++; } });
+  return { total: qs.length, c, w, seen, acc: seen ? c / seen : null };
+}
+// 弱点度: 直近不正解・誤答回数・分野の正答率の低さで重み付け。未回答は中程度。
+function weakness(q) {
+  const s = st(q.id), ds = domainStats(q.domain);
+  const dom = ds.acc === null ? 1 : 1.6 - ds.acc;
+  let base;
+  if (s.last === null) base = 2;
+  else base = (s.last ? 0.4 : 4) + s.w * 1.2 - Math.min(s.c, 3) * 0.3;
+  return Math.max(0.1, base) * dom;
+}
+function weightedPick(pool, n) {
+  pool = pool.map(q => ({ q, k: Math.pow(Math.random(), 1 / weakness(q)) }));
+  return pool.sort((a, b) => b.k - a.k).slice(0, n).map(x => x.q);
+}
+
+function home() {
+  clearInterval(timerId);
+  const days = Math.ceil((EXAM_DATE - new Date()) / 86400000);
+  const wrongs = QUESTIONS.filter(q => st(q.id).last === false);
+  const stars = QUESTIONS.filter(q => S.star[q.id]);
+  const answered = QUESTIONS.filter(q => st(q.id).last !== null).length;
+  app.innerHTML = "";
+  app.append($(`<div class="top"><h1>Agentforce Sales コンサルタント 問題集</h1>
+    <div class="count">受験目標 11/30 まで <b>${days > 0 ? days : 0}</b> 日</div></div>`));
+  const p = $(`<section class="panel"><div class="top"><h2>分野別の到達度</h2><span class="small">${answered} / ${QUESTIONS.length} 問 回答済み</span></div><div class="domains"></div></section>`);
+  const dbox = p.querySelector(".domains");
+  DOMAINS.forEach(d => {
+    const s = domainStats(d.name);
+    const cp = s.total ? s.c / s.total * 100 : 0, wp = s.total ? s.w / s.total * 100 : 0;
+    dbox.append($(`<div class="drow"><span class="name">${esc(d.name)} <span class="small">配点 ${d.w}%</span></span>
+      <span class="num">${s.acc === null ? "—" : Math.round(s.acc * 100) + "%"} · ${s.seen}/${s.total}</span>
+      <div class="bar"><i class="c" style="width:${cp}%"></i><i class="w" style="width:${wp}%"></i></div></div>`));
+  });
+  app.append(p);
+  const m = $(`<section class="panel"><h2>出題モード</h2><div class="modes"></div>
+    <div class="row"><select id="dom-select" aria-label="分野">${DOMAINS.map(d => `<option>${esc(d.name)}</option>`).join("")}</select>
+    <button class="btn" id="dom-go">この分野を全問</button></div></section>`);
+  const modes = m.querySelector(".modes");
+  const add = (label, sub, fn, cls = "", disabled = false) => { const b = $(`<button class="mode ${cls}" ${disabled ? "disabled" : ""}><strong>${label}</strong><span>${sub}</span></button>`); b.onclick = fn; modes.append(b); };
+  add("弱点優先 20問", "間違えた問題と苦手分野を多めに出題", () => start(weightedPick(QUESTIONS, 20), "弱点優先"), "primary");
+  add("模擬試験 60問", "105分・配点比率どおり・最後に採点", () => startMock());
+  add("ランダム 10問", "全分野からまんべんなく", () => start(shuffle(QUESTIONS).slice(0, 10), "ランダム"));
+  add("間違えた問題", `${wrongs.length}問 (直近の回答が不正解)`, () => start(shuffle(wrongs), "復習"), "", !wrongs.length);
+  add("ブックマーク", `${stars.length}問`, () => start(shuffle(stars), "ブックマーク"), "", !stars.length);
+  add("未回答のみ", `${QUESTIONS.length - answered}問`, () => start(shuffle(QUESTIONS.filter(q => st(q.id).last === null)), "未回答"), "", answered === QUESTIONS.length);
+  m.querySelector("#dom-go").onclick = () => { const d = m.querySelector("#dom-select").value; start(shuffle(QUESTIONS.filter(q => q.domain === d)), d); };
+  app.append(m);
+  const r = $(`<div class="row small">回答履歴はこのブラウザにだけ保存されます。<button class="danger" id="reset">履歴を消去</button></div>`);
+  r.querySelector("#reset").onclick = (e) => {
+    if (e.target.dataset.armed) { S = { q: {}, star: {} }; save(); home(); }
+    else { e.target.dataset.armed = 1; e.target.textContent = "もう一度押すと消去します"; }
+  };
+  app.append(r);
+}
+
+let session = null, timerId = null;
+function start(list, label, mock = false) {
+  if (!list.length) return;
+  session = { list: list.map(q => ({ q, order: shuffle(q.choices.map((_, i) => i)), pick: [], done: false })), i: 0, label, mock, endAt: mock ? Date.now() + 105 * 60000 : 0 };
+  if (mock) timerId = setInterval(tick, 1000);
+  render();
+}
+function startMock() {
+  const out = [];
+  DOMAINS.forEach(d => { const n = Math.round(60 * d.w / 100); out.push(...shuffle(QUESTIONS.filter(q => q.domain === d.name)).slice(0, n)); });
+  start(shuffle(out), "模擬試験", true);
+}
+function tick() {
+  const el = document.getElementById("timer"); if (!el) return;
+  const left = Math.max(0, session.endAt - Date.now());
+  el.textContent = `${String(Math.floor(left / 60000)).padStart(2, "0")}:${String(Math.floor(left / 1000) % 60).padStart(2, "0")}`;
+  el.classList.toggle("low", left < 600000);
+  if (!left) finish();
+}
+const isRight = it => { const a = it.q.answer.slice().sort().join(), p = it.pick.slice().sort().join(); return a === p; };
+function record(it) {
+  const s = st(it.q.id), ok = isRight(it);
+  S.q[it.q.id] = { c: s.c + (ok ? 1 : 0), w: s.w + (ok ? 0 : 1), last: ok }; save();
+}
+
+function render() {
+  const it = session.list[session.i], q = it.q, need = q.answer.length, multi = need > 1;
+  const showAns = it.done && !session.mock;
+  app.innerHTML = "";
+  const head = $(`<div class="top"><button class="btn" id="back">← 終了</button>
+    <span class="count">${esc(session.label)} · ${session.i + 1} / ${session.list.length}${session.mock ? ` · <span class="timer" id="timer"></span>` : ""}</span></div>`);
+  head.querySelector("#back").onclick = () => session.mock ? finish() : home();
+  app.append(head);
+  app.append($(`<div class="progress"><i style="width:${(session.i) / session.list.length * 100}%"></i></div>`));
+  const card = $(`<section class="panel"><div class="meta"><span class="chip">${esc(q.domain)}</span><span>${esc(q.topic || "")}</span>
+    ${multi ? `<span class="chip multi">${need}つ選択</span>` : ""}<span style="flex:1"></span>
+    <button class="star ${S.star[q.id] ? "on" : ""}" id="star">${S.star[q.id] ? "★ 保存済み" : "☆ ブックマーク"}</button></div>
+    <div class="q">${esc(q.q)}</div><div class="choices"></div><div class="row" id="actions"></div></section>`);
+  card.querySelector("#star").onclick = () => { S.star[q.id] ? delete S.star[q.id] : (S.star[q.id] = 1); save(); render(); };
+  const box = card.querySelector(".choices");
+  it.order.forEach((ci, k) => {
+    const picked = it.pick.includes(ci), right = q.answer.includes(ci);
+    let cls = picked ? "sel" : "";
+    if (showAns) cls = right ? "right" : (picked ? "wrong" : "");
+    const id = `c-${q.id}-${ci}`;
+    const el = $(`<label class="choice ${cls}" for="${id}"><input id="${id}" type="${multi ? "checkbox" : "radio"}" name="ch" ${picked ? "checked" : ""} ${showAns ? "disabled" : ""}>
+      <span>${"ABCDE"[k]}. ${esc(q.choices[ci])}</span>${showAns && q.choiceNotes && q.choiceNotes[ci] ? `<span class="note">${right ? "○" : "×"} ${esc(q.choiceNotes[ci])}</span>` : ""}</label>`);
+    el.querySelector("input").onchange = () => {
+      if (multi) { it.pick = picked ? it.pick.filter(x => x !== ci) : [...it.pick, ci]; } else it.pick = [ci];
+      if (session.mock) it.done = it.pick.length > 0;
+      render();
+    };
+    box.append(el);
+  });
+  const act = card.querySelector("#actions");
+  if (!session.mock && !it.done) {
+    const b = $(`<button class="btn go" ${it.pick.length !== need ? "disabled" : ""}>解答する</button>`);
+    b.onclick = () => { it.done = true; record(it); render(); };
+    act.append(b);
+    if (multi && it.pick.length !== need) act.append($(`<span class="small">${need}つ選んでください</span>`));
+  } else {
+    if (session.i > 0) { const pv = $(`<button class="btn">前へ</button>`); pv.onclick = () => { session.i--; render(); }; act.append(pv); }
+    const last = session.i === session.list.length - 1;
+    const nx = $(`<button class="btn go">${last ? (session.mock ? "採点する" : "結果を見る") : "次へ"}</button>`);
+    nx.onclick = () => { if (last) finish(); else { session.i++; render(); } };
+    act.append(nx);
+  }
+  if (session.mock && !it.done && session.i < session.list.length - 1) {
+    const sk = $(`<button class="btn">あとで解く</button>`); sk.onclick = () => { session.i++; render(); }; act.append(sk);
+  }
+  if (showAns) {
+    const ok = isRight(it);
+    card.append($(`<div class="expl"><div class="verdict ${ok ? "ok" : "ng"}">${ok ? "正解" : "不正解"}　<span class="small">正答: ${it.order.map((ci, k) => q.answer.includes(ci) ? "ABCDE"[k] : "").join("")}</span></div>
+      <div>${esc(q.explanation)}</div>${q.ref ? `<div class="ref">参考: ${esc(q.ref)}</div>` : ""}</div>`));
+  }
+  app.append(card);
+  if (session.mock) tick();
+  window.scrollTo(0, 0);
+}
+
+function finish() {
+  clearInterval(timerId);
+  const done = session.list.filter(it => session.mock ? true : it.done);
+  if (session.mock) session.list.forEach(it => { record(it); it.done = true; });
+  const ok = done.filter(isRight).length, pct = done.length ? Math.round(ok / done.length * 100) : 0;
+  app.innerHTML = "";
+  const hd = $(`<div class="top"><h1>${esc(session.label)} の結果</h1><button class="btn" id="home">ホームへ</button></div>`);
+  hd.querySelector("#home").onclick = home; app.append(hd);
+  const p = $(`<section class="panel"><div class="row"><span class="result-big">${pct}%</span>
+    <span>${ok} / ${done.length} 問正解${session.mock ? `<br><span class="small">合格ラインの目安は 69〜73%（公式で要確認）。${pct >= 73 ? "目安を超えています。" : "目安に届いていません。"}</span>` : ""}</span></div><div class="domains"></div></section>`);
+  const dbox = p.querySelector(".domains");
+  DOMAINS.forEach(d => {
+    const xs = done.filter(it => it.q.domain === d.name); if (!xs.length) return;
+    const c = xs.filter(isRight).length;
+    dbox.append($(`<div class="drow"><span class="name">${esc(d.name)}</span><span class="num">${c}/${xs.length}</span>
+      <div class="bar"><i class="c" style="width:${c / xs.length * 100}%"></i><i class="w" style="width:${(xs.length - c) / xs.length * 100}%"></i></div></div>`));
+  });
+  app.append(p);
+  const l = $(`<section class="panel"><h2>問題を見直す</h2><div class="list"></div></section>`);
+  done.forEach((it, k) => {
+    const r = isRight(it);
+    const b = $(`<button class="li"><span class="mark ${r ? "ok" : "ng"}">${r ? "○" : "×"}</span><span>${esc(it.q.q.slice(0, 70))}…</span></button>`);
+    b.onclick = () => { session.mock = false; session.list = done; session.i = k; render(); };
+    l.querySelector(".list").append(b);
+  });
+  app.append(l);
+  window.scrollTo(0, 0);
+}
+home();
+</script>
+</body>
+</html>
